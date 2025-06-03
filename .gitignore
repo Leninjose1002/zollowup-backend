@@ -1,0 +1,16 @@
+# Ignore uploaded files
+uploads/
+
+# Ignore environment variables
+.env
+
+# Node dependencies
+node_modules/
+
+# Optional: OS or IDE files
+.DS_Store
+*.log
+echo uploads/*.mp4>> .gitignore
+echo *.mp4>> .gitignore
+.vscode/
+uploads/*.mp4

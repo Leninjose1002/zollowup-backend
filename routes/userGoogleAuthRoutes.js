@@ -42,8 +42,10 @@ router.get(
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
+      
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
-      const redirectURL = `http://localhost:3000/user/google-redirect?token=${token}&needsPassword=${needsPassword}`;
+const redirectURL = `${FRONTEND_URL}/user/google-redirect?token=${token}&needsPassword=${needsPassword}`;
       console.log('🔁 Redirecting to:', redirectURL);
       return res.redirect(redirectURL);
     } catch (err) {

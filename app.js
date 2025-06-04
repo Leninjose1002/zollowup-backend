@@ -10,11 +10,15 @@ const app = express();
 
 // ✅ CORS Configuration
 app.use(
-cors({
-origin: "http://localhost:3000",
-credentials: true,
-})
+  cors({
+    origin: [
+      "http://localhost:3000",                // local dev
+      "https://zollowupdemo.vercel.app"       // live frontend
+    ],
+    credentials: true,
+  })
 );
+
 
 // ✅ Middleware
 app.use(express.json());

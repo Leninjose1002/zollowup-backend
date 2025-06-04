@@ -1,4 +1,4 @@
-const Service = require("../models/service"); // Ensure you have a valid model
+const Service = require("../models/Service"); // Ensure you have a valid model
 
 // ✅ Get all services
 const getAllServices = async (req, res) => {

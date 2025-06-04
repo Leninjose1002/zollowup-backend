@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (email, token) => {
-  const url = `http://localhost:3000/verify-email/${token}`;
+  const url = `https://zollowupdemo.vercel.app/verify-email/${token}`; // ✅ production URL
   const html = `<p>Click <a href="${url}">here</a> to verify your email.</p>`;
 
   await transporter.sendMail({
@@ -61,7 +61,7 @@ router.get("/verify-email/:token", async (req, res) => {
   await user.save();
 
   // Redirect or show success
-return res.redirect("http://localhost:3000/user/login?verified=true");
+return res.redirect("https://zollowupdemo.vercel.app/user-login?verified=true");
 });
 
 
@@ -88,12 +88,13 @@ router.post("/login", async (req, res) => {
   );
 
   // ✅ Send token as cookie
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // only true on HTTPS
-    sameSite: "lax", // or "strict"
-    maxAge: 60 * 60 * 1000, // 1 hour
-  });
+ res.cookie("token", token, {
+  httpOnly: true,
+  secure: true, // ✅ force true even in dev (needed for cross-origin cookies)
+  sameSite: "None", // ✅ very important for Vercel <-> Render communication
+  maxAge: 60 * 60 * 1000, // 1 hour
+});
+
 
   res.status(200).json({
   message: "Login successful",

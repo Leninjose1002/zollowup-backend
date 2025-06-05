@@ -51,17 +51,37 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// GET /api/users/verify-email/:token
-router.get("/verify-email/:token", async (req, res) => {
-  const user = await User.findOne({ verificationToken: req.params.token });
-  if (!user) return res.status(400).json({ msg: "Invalid or expired token." });
+// POST /api/users/resend-verification
+router.post("/resend-verification", async (req, res) => {
+  const { email } = req.body;
 
-  user.emailVerified = true;
-  user.verificationToken = undefined;
-  await user.save();
+  try {
+    const user = await User.findOne({ email });
 
-  // Redirect or show success
-return res.redirect("https://zollowupdemo.vercel.app/user-login?verified=true");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.emailVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+
+    const crypto = require("crypto");
+    const sendEmail = require("../utils/sendEmail");
+
+    const newToken = crypto.randomBytes(32).toString("hex");
+    user.verificationToken = newToken;
+    await user.save();
+
+    const verificationUrl = `https://zollowupdemo.vercel.app/verify-email/${newToken}`;
+    await sendEmail({
+      to: user.email,
+      subject: "Resend: Verify your ZollowUp account",
+      html: `<p>Please click the link below to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
+    });
+
+    res.status(200).json({ message: "Verification email resent!" });
+  } catch (err) {
+    console.error("Resend error:", err);
+    res.status(500).json({ message: "Server error. Try again later." });
+  }
 });
 
 

@@ -88,6 +88,32 @@ router.post("/resend-verification", async (req, res) => {
   }
 });
 
+// ✅ GET /api/users/verify-email/:token
+router.get("/verify-email/:token", async (req, res) => {
+  const { token } = req.params;
+  console.log("🔍 Verifying token:", token);
+
+  try {
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid or expired verification link." });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ msg: "Email already verified." });
+    }
+
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.status(200).json({ msg: "Email verified successfully!" });
+  } catch (err) {
+    console.error("❌ Verification error:", err);
+    res.status(500).json({ msg: "Server error during verification." });
+  }
+});
 
 
 // POST /api/users/login

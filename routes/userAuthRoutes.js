@@ -58,31 +58,36 @@ router.post("/resend-verification", async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.emailVerified) {
-      return res.status(400).json({ message: "Email already verified" });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
     }
 
-    const crypto = require("crypto");
-    const sendEmail = require("../utils/sendEmail");
+    if (user.emailVerified) {
+      return res.status(400).json({ msg: "Email already verified." });
+    }
 
+    // Generate a new token
     const newToken = crypto.randomBytes(32).toString("hex");
     user.verificationToken = newToken;
     await user.save();
 
+    // Build verification URL
     const verificationUrl = `https://zollowupdemo.vercel.app/verify-email/${newToken}`;
+
+    // Send email
     await sendEmail({
       to: user.email,
       subject: "Resend: Verify your ZollowUp account",
       html: `<p>Please click the link below to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
     });
 
-    res.status(200).json({ message: "Verification email resent!" });
+    res.status(200).json({ msg: "Verification email resent!" });
   } catch (err) {
-    console.error("Resend error:", err);
-    res.status(500).json({ message: "Server error. Try again later." });
+    console.error("❌ Resend error:", err);
+    res.status(500).json({ msg: "Server error. Try again later." });
   }
 });
+
 
 
 // POST /api/users/login

@@ -18,6 +18,15 @@ const userSchema = new mongoose.Schema({
   },
   passwordNotSet: { type: Boolean, default: false },
 
+referralCode: {
+  type: String,
+  unique: true,
+},
+
+referredBy: {
+  type: String, // store the referralCode of the person who referred them
+  default: null,
+},
 
 });
 

@@ -47,6 +47,11 @@ const bookingSchema = new mongoose.Schema({
     verified: Boolean,
   },
 
+status: {
+  type: String,
+  enum: ["Available", "Booked", "Offline"],
+  default: "Available",
+},
   createdAt: {
     type: Date,
     default: Date.now,

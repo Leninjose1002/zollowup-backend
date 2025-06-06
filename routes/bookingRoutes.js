@@ -99,6 +99,11 @@ router.post("/", authMiddleware, async (req, res) => {
     const newBooking = new Booking(req.body);
     await newBooking.save();
 
+    // ✅ If booking is for a maid, update maid status
+    if (newBooking.serviceType === "maid" && newBooking.maidId) {
+      await Maid.findByIdAndUpdate(newBooking.maidId, { status: "Booked" });
+    }
+
     const io = req.app.get("io");
     io.emit("booking_update", newBooking);
 

@@ -7,6 +7,8 @@ const nodemailer = require("nodemailer");
 const User = require("../models/User");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
+const { nanoid } = require("nanoid");
+
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
@@ -29,9 +31,10 @@ const sendVerificationEmail = async (email, token) => {
   });
 };
 
+
 // POST /api/users/register
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, referredBy } = req.body;
   if (!name || !email || !password) return res.status(400).json({ msg: "All fields required" });
 
   const existing = await User.findOne({ email });
@@ -40,7 +43,18 @@ router.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const token = crypto.randomBytes(20).toString("hex");
 
-  const user = new User({ name, email, password: hashedPassword, verificationToken: token, isVerified: false });
+  const referralCode = nanoid(8); // generate short unique code
+
+  const user = new User({
+    name,
+    email,
+    password: hashedPassword,
+    verificationToken: token,
+    isVerified: false,
+    referralCode,
+    referredBy: referredBy || null,
+  });
+
   await user.save();
 
   try {
@@ -50,6 +64,7 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ msg: "Failed to send verification email" });
   }
 });
+
 
 // POST /api/users/resend-verification
 router.post("/resend-verification", async (req, res) => {

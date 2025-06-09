@@ -43,8 +43,7 @@ router.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const token = crypto.randomBytes(20).toString("hex");
 
-  const referralCode = nanoid(8); // generate short unique code
-
+  const referralCode = nanoid(8); 
   const user = new User({
     name,
     email,
@@ -162,8 +161,9 @@ router.post("/login", async (req, res) => {
 });
 
 
-  res.status(200).json({
+ res.status(200).json({
   message: "Login successful",
+  token, // ✅ send token in response for frontend
   user: {
     id: user._id,
     name: user.name,

@@ -10,14 +10,20 @@ dotenv.config();
 const app = express();
 
 // ✅ CORS Configuration + Preflight Handling (MUST BE BEFORE ROUTES)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://zollowupdemo.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://zollowupdemo.vercel.app"
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 }));
-app.options("*", cors()); // ✅ Preflight requests
 
 // ✅ Middleware
 app.use(express.json());

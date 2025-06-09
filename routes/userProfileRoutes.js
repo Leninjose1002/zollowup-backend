@@ -8,33 +8,51 @@ const {
 
 const router = express.Router();
 
-// ✅ Add this: Get logged-in user's profile (used in AuthContext)
+// ✅ Get logged-in user's profile (used in AuthContext + Referral Dashboard)
+// ✅ GET /api/users/me
 router.get("/me", authMiddleware, async (req, res) => {
-  console.log("🔐 req.user =", req.user); // ✅ for debug
+  console.log("🔥 /me route HIT with userId:", req.user.userId);
+
   try {
     const user = await User.findById(req.user.userId);
 
     if (!user) {
+      console.log("❌ User not found");
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Count how many people used this user's referral code
+    const referralCount = await User.countDocuments({
+      referredBy: user.referralCode,
+    });
+
+    // Debug full object
+    console.log("📤 Sending user details:", {
+      _id: user._id,
+      name: user.name,
+      referralCode: user.referralCode,
+      referredBy: user.referredBy,
+      referralCount,
+    });
+
     res.json({
       _id: user._id,
-      name: user.name || "User", // ✅ fallback name
+      name: user.name || "User",
       email: user.email || "-",
-      address: user.address || "-", // ✅ include if available
-      phone: user.phone || "-",     // ✅ include if available
+      address: user.address || "-",
+      phone: user.phone || "-",
       isAdmin: user.isAdmin || false,
       passwordNotSet: !user.password,
+
+      referralCode: user.referralCode || "",
+      referredBy: user.referredBy || "",
+      referralCount: referralCount || 0,
     });
   } catch (err) {
-    console.error("Error in /me route:", err);
+    console.error("❌ Error in /me route:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
-
 
 
 // ✅ Get all users (Protected)
@@ -58,7 +76,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Update account details
+// ✅ Update account details (via email)
 router.put("/account-details/:email", authMiddleware, async (req, res) => {
   const { email } = req.params;
   const { name, altMobile, altHint } = req.body;
@@ -76,7 +94,8 @@ router.put("/account-details/:email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-// ✅ Secure update by token (used in dashboard Edit Profile)
+
+// ✅ Update profile via token
 router.put("/update-profile", authMiddleware, updateProfile, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
@@ -109,6 +128,5 @@ router.put("/update-profile", authMiddleware, updateProfile, async (req, res) =>
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 module.exports = router;

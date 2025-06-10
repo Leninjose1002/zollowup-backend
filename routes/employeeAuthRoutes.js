@@ -60,17 +60,7 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
-// 🔗 Google OAuth Login
-// router.get('/google', passport.authenticate('google-employee', {
-//   scope: ['profile', 'email'],
-// }));
-// router.get('/google/callback',
-//   passport.authenticate('google-employee', { session: false, failureRedirect: '/employee-login' }),
-//   (req, res) => {
-//     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET);
-//     res.redirect(`http://localhost:3000/employee/dashboard?token=${token}`);
-//   }
-// );
+
 
 // CRUD: GET all employees (Admin only)
 router.get("/", authMiddleware, async (req, res) => {

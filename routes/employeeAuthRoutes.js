@@ -1,6 +1,6 @@
 // 📁 routes/employeeAuthRoutes.js
 const express = require("express");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const Employee = require("../models/Employee");
@@ -9,6 +9,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 console.log("✅ employeeAuthRoutes.js loaded");
+
 
 // 🔐 Employee Login
 // POST /api/employees/login
@@ -21,10 +22,14 @@ router.post("/login", async (req, res) => {
 
   try {
     const employee = await Employee.findOne({ email });
-    if (!employee) return res.status(401).json({ msg: "Invalid credentials" });
+    if (!employee) {
+      return res.status(401).json({ msg: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, employee.password);
-    if (!isMatch) return res.status(401).json({ msg: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(401).json({ msg: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { userId: employee._id, userType: "employee" },
@@ -32,14 +37,22 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    // ✅ Set the token in a cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // use false if testing only on localhost
+      sameSite: "None", // Required for cross-domain (e.g., Vercel frontend)
+      maxAge: 3600000, // 1 hour
+    });
+
+    // ✅ Return employee info in response
     res.json({
-      token,
+      message: "Login successful",
       employee: {
         id: employee._id,
+        name: employee.name,
         email: employee.email,
-        position: employee.position, // ✅ optional
-        // 👇 FIX: Add name to the response
-        name: employee.name
+        position: employee.position,
       },
     });
   } catch (error) {
@@ -47,6 +60,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
 
 // 🔵 GET current employee profile (if authenticated)
 router.get("/me", authMiddleware, async (req, res) => {

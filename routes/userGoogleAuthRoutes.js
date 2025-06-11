@@ -6,13 +6,14 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 // ✅ Start Google Sign-In for users
-router.get(
-  '/google',
-  passport.authenticate('google-user', {
-    scope: ['profile', 'email'],
-    prompt: 'select_account',
-  })
-);
+router.get('/google', (req, res, next) => {
+  console.log('✅ /google route hit');
+  next();
+}, passport.authenticate('google-user', {
+  scope: ['profile', 'email'],
+  prompt: 'select_account',
+}));
+
 
 // ✅ Google OAuth Callback
 router.get(

@@ -14,7 +14,7 @@ const getAllMaids = async (req, res) => {
     const maids = await Maid.find(filter);
     res.json(maids);
   } catch (error) {
-    console.error("❌ Error getting maids from DB:", error);
+    console.error("❌ Error getting maids from DB:", error); 
     res.status(500).json({ message: "Server error" });
   }
 };

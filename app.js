@@ -3,7 +3,6 @@ const dotenv = require("dotenv");
 const passport = require("passport");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { handleContactForm } = require("./controllers/contactController");
 
 dotenv.config();
 const app = express();
@@ -11,9 +10,19 @@ const app = express();
 // ✅ Load Google OAuth Strategy before routes
 require("./config/passport");
 
-// ✅ Then register Google auth route FIRST
+// ✅ Import route modules
 const userGoogleAuthRoutes = require("./routes/userGoogleAuthRoutes");
-app.use("/api/users", userGoogleAuthRoutes);     // 👈 Move this up
+const userAuthRoutes = require("./routes/userAuthRoutes");
+const userProfileRoutes = require("./routes/userProfileRoutes");
+const employeeAuthRoutes = require("./routes/employeeAuthRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
+const locationRoutes = require("./routes/locationRoutes");
+const contactRoutes = require("./routes/contactRoutes");
+const maidRoutes = require("./routes/maidRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 // ✅ CORS Configuration (allow frontend domains)
 const allowedOrigins = [
@@ -31,45 +40,30 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ Middlewares
+// ✅ Core Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// ✅ Public route for contact form
-app.post("/contact", handleContactForm);
-
-// ✅ Import route modules
-const userAuthRoutes = require("./routes/userAuthRoutes");
-const userProfileRoutes = require("./routes/userProfileRoutes");
-const employeeAuthRoutes = require("./routes/employeeAuthRoutes");
-const bookingRoutes = require("./routes/bookingRoutes");
-const serviceRoutes = require("./routes/serviceRoutes");
-const locationRoutes = require("./routes/locationRoutes");
-const contactRoutes = require("./routes/contactRoutes");
-const maidRoutes = require("./routes/maidRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const chatRoutes = require("./routes/chatRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
-
 // ✅ Route registration
-app.use("/api/users", userAuthRoutes);           // login/register
-app.use("/api/users", userProfileRoutes);        // profile routes
-app.use("/api/employees", employeeAuthRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/services", serviceRoutes);
-app.use("/api/location", locationRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api/maids", maidRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/users", userGoogleAuthRoutes);     // Google login
+app.use("/api/users", userAuthRoutes);           // Email login/register
+app.use("/api/users", userProfileRoutes);        // Profile APIs
+app.use("/api/employees", employeeAuthRoutes);   // Employee login
+app.use("/api/bookings", bookingRoutes);         // Booking logic
+app.use("/api/services", serviceRoutes);         // Services
+app.use("/api/location", locationRoutes);        // Cities & locations
+app.use("/api/contact", contactRoutes);          // Contact form
+app.use("/api/maids", maidRoutes);               // Maid management
+app.use("/api/reviews", reviewRoutes);           // Reviews
+app.use("/api/chat", chatRoutes);                // Chat feature
+app.use("/api/payment", paymentRoutes);          // Razorpay etc.
 
-// ✅ Static uploads
+// ✅ Serve uploads
 app.use("/uploads", express.static("uploads"));
 
-// ✅ API status route
+// ✅ API Health Check
 app.get("/", (req, res) => {
   res.send("🚀 API is running...");
 });

@@ -14,7 +14,7 @@ const authMiddleware = async (req, res, next) => {
 
     req.user = {
       userId: testUser._id,
-      userType: "user",
+      userType: "user", 
       isAdmin: true, // ✅ force true for testing
     };
 
@@ -50,4 +50,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+module.exports = authMiddleware; 

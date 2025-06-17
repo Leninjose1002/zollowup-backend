@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 dotenv.config();
 const app = express();
 
+console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
+console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
+
+
 // ✅ Load Google OAuth Strategy before routes
 require("./config/passport");
 

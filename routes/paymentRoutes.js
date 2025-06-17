@@ -28,6 +28,7 @@ router.post("/create-order", async (req, res) => {
   }
 });
 
+
 router.post("/verify-payment", async (req, res) => {
   const {
     razorpay_order_id,
@@ -55,6 +56,8 @@ router.post("/verify-payment", async (req, res) => {
     amount,
     currency,
     userId,
+      key: process.env.RAZORPAY_KEY_ID // ✅ Add this
+
   });
   await payment.save();
 

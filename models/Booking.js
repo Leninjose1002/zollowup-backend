@@ -33,13 +33,16 @@ const bookingSchema = new mongoose.Schema({
   date: String,
   address: String,
   phone: String,
-  status: {
-  type: String,
-  enum: ["confirmed", "cancelled"], // ✅ Only two statuses now
-  // default: "confirmed",
-},
 
-   payment: {
+  // ✅ Booking Status
+  status: {
+    type: String,
+    enum: ["confirmed", "cancelled"],
+    default: "confirmed",
+  },
+
+  // ✅ Payment Info
+  payment: {
     orderId: String,
     paymentId: String,
     amount: Number,
@@ -47,11 +50,13 @@ const bookingSchema = new mongoose.Schema({
     verified: Boolean,
   },
 
-status: {
-  type: String,
-  enum: ["Available", "Booked", "Offline"],
-  default: "Available",
-},
+  // ✅ Staff Availability Status
+  staffStatus: {
+    type: String,
+    enum: ["Available", "Booked", "Offline"],
+    default: "Available",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

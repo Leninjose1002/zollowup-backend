@@ -8,6 +8,8 @@ const Booking = require("../models/Booking");
 // 🆕 Public route: Nurse booking form (no login required)
 router.post("/nurse", async (req, res) => {
   try {
+    console.log("📥 Incoming nurse booking:", req.body);
+
     const {
       nurseType,
       shift,
@@ -21,8 +23,11 @@ router.post("/nurse", async (req, res) => {
       notes,
     } = req.body;
 
-    const fullAddress = `${street}, ${city}, ${state} - ${zip}`;
+    if (!email || !phone || !nurseType || !shift) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
 
+    const fullAddress = `${street}, ${city}, ${state} - ${zip}`;
     const booking = new Booking({
       serviceType: "nurse",
       nurseType,
@@ -37,7 +42,6 @@ router.post("/nurse", async (req, res) => {
 
     await booking.save();
 
-    // Send email
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -53,32 +57,38 @@ router.post("/nurse", async (req, res) => {
       subject: "Your Nurse Booking Confirmation",
       html: `
         <h2>Thanks for booking with ZollowUp</h2>
-        <p>Your nurse service request has been received successfully. Here are the details:</p>
+        <p>Your nurse service request has been received successfully:</p>
         <ul>
           <li><strong>Nurse Type:</strong> ${nurseType}</li>
-          <li><strong>Preferred Shift:</strong> ${shift}</li>
-          <li><strong>Date & Time:</strong> ${new Date(date).toLocaleString()}</li>
+          <li><strong>Shift:</strong> ${shift}</li>
+          <li><strong>Date:</strong> ${new Date(date).toLocaleString()}</li>
           <li><strong>Phone:</strong> ${phone}</li>
           <li><strong>Email:</strong> ${email}</li>
           <li><strong>Address:</strong> ${fullAddress}</li>
-          <li><strong>Additional Notes:</strong> ${notes || "N/A"}</li>
+          <li><strong>Notes:</strong> ${notes || "N/A"}</li>
         </ul>
-        <p style="margin-top:1rem">✅ Our team will contact you shortly. Thank you for trusting ZollowUp.</p>
       `,
     };
+
+    console.log("📤 Sending mail to:", email);
 
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({
       success: true,
-      message: "Nurse booking submitted and email sent",
+      message: "Nurse booking submitted successfully",
       data: booking,
     });
   } catch (error) {
-    console.error("Error submitting nurse booking:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("❌ Nurse booking failed:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during nurse booking",
+      error: error.message,
+    });
   }
 });
+
 
 // 🛡️ Admin route: view all nurse bookings
 router.get("/nurse/admin", authMiddleware, async (req, res) => {
@@ -116,5 +126,92 @@ router.post("/", authMiddleware, async (req, res) => {
 
 // ✅ Update booking status
 router.patch("/bookings/:id/status", updateBookingStatus);
+
+// 🆕 Public route: Chef booking form (no login required)
+router.post("/chef", async (req, res) => {
+  try {
+    const {
+      name,
+      phone,
+      email,
+      street,
+      city,
+      state,
+      zip,
+      date,
+      time,
+      guests,
+      category,
+      occasion,
+      cuisine,
+      utensils,
+      serviceType,
+      notes,
+    } = req.body;
+
+    const fullAddress = `${street}, ${city}, ${state} - ${zip}`;
+
+    const booking = new Booking({
+      serviceType: "chef",
+      name,
+      phone,
+      email,
+      address: fullAddress,
+      date: `${date} ${time}`,
+      notes,
+      // Custom fields can be saved under notes or extended model if needed
+      notes: `Occasion: ${occasion || "N/A"}, Guests: ${guests}, Category: ${category}, Cuisine: ${cuisine}, Utensils: ${utensils ? "Yes" : "No"}, Service Type: ${serviceType}. Notes: ${notes || "N/A"}`
+    });
+
+    await booking.save();
+
+    // 📧 Send email confirmation
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      bcc: process.env.ADMIN_EMAIL,
+      subject: "Your Chef Booking Confirmation",
+      html: `
+        <h2>Thanks for booking with ZollowUp</h2>
+        <p>Your chef service request has been received successfully. Here are the details:</p>
+        <ul>
+          <li><strong>Name:</strong> ${name}</li>
+          <li><strong>Date & Time:</strong> ${new Date(`${date}T${time}`).toLocaleString()}</li>
+          <li><strong>Phone:</strong> ${phone}</li>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Address:</strong> ${fullAddress}</li>
+          <li><strong>No. of Guests:</strong> ${guests}</li>
+          <li><strong>Category:</strong> ${category}</li>
+          <li><strong>Occasion:</strong> ${occasion}</li>
+          <li><strong>Cuisine:</strong> ${cuisine}</li>
+          <li><strong>Need Utensils:</strong> ${utensils ? "Yes" : "No"}</li>
+          <li><strong>Service Type:</strong> ${serviceType}</li>
+          <li><strong>Additional Notes:</strong> ${notes || "N/A"}</li>
+        </ul>
+        <p style="margin-top:1rem">✅ Our team will contact you shortly. Thank you for trusting ZollowUp.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).json({
+      success: true,
+      message: "Chef booking submitted and email sent",
+      data: booking,
+    });
+  } catch (error) {
+    console.error("Error submitting chef booking:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 module.exports = router;

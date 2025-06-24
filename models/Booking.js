@@ -29,17 +29,25 @@ const bookingSchema = new mongoose.Schema({
   shift: String,
   notes: String,
 
+  // ✅ CHEF Booking Fields
+  chefCategory: String,             // Veg / Non-Veg / Both
+  noOfGuests: Number,               // Total number of guests
+  occasion: String,                 // e.g., Birthday, Puja
+  cuisine: String,                  // e.g., North Indian
+  bringUtensils: Boolean,           // true/false
+  chefServiceType: String,          // Cooking Only / Full Service
   // ✅ Common Fields
   date: String,
   address: String,
   phone: String,
 
   // ✅ Booking Status
-  status: {
-    type: String,
-    enum: ["confirmed", "cancelled"],
-    default: "confirmed",
-  },
+status: {
+  type: String,
+  enum: ["pending", "confirmed", "cancelled"],
+  default: "pending",
+}
+,
 
   // ✅ Payment Info
   payment: {

@@ -4,12 +4,15 @@ const passport = require("passport");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
+// ✅ Load .env first
 dotenv.config();
+
 const app = express();
 
+// ✅ Log env variables (for debugging)
 console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
 console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
-
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
 // ✅ Load Google OAuth Strategy before routes
 require("./config/passport");
@@ -28,21 +31,23 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
-// ✅ CORS Configuration (allow frontend domains)
+// ✅ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://zollowupdemo.vercel.app"
+  "https://zollowupdemo.vercel.app",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 
 // ✅ Core Middlewares
 app.use(express.json());
@@ -50,31 +55,31 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// ✅ Route registration
-app.use("/api/users", userGoogleAuthRoutes);     // Google login
-app.use("/api/users", userAuthRoutes);           // Email login/register
-app.use("/api/users", userProfileRoutes);        // Profile APIs
-app.use("/api/employees", employeeAuthRoutes);   // Employee login
-app.use("/api/bookings", bookingRoutes);         // Booking logic
-app.use("/api/services", serviceRoutes);         // Services
-app.use("/api/location", locationRoutes);        // Cities & locations
-app.use("/api/contact", contactRoutes);          // Contact form
-app.use("/api/maids", maidRoutes);               // Maid management
-app.use("/api/reviews", reviewRoutes);           // Reviews
-app.use("/api/chat", chatRoutes);                // Chat feature
-app.use("/api/payment", paymentRoutes);          // Razorpay etc.
-
-// ✅ Serve uploads
+// ✅ Serve static files
 app.use("/uploads", express.static("uploads"));
+
+// ✅ API Routes
+app.use("/api/users", userGoogleAuthRoutes);
+app.use("/api/users", userAuthRoutes);
+app.use("/api/users", userProfileRoutes);
+app.use("/api/employees", employeeAuthRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/maids", maidRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ✅ API Health Check
 app.get("/", (req, res) => {
   res.send("🚀 API is running...");
 });
 
-// ✅ Global error handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("🔥 Global Error:", err.stack);
   res.status(500).send("Something went wrong!");
 });
 

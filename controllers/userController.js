@@ -3,15 +3,27 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
+// ✅ Create New User (Signup)
 exports.createUser = async (req, res) => {
   console.log("📨 Received signup request:", req.body);
 
-  const { name, email, password } = req.body;
+  const { name, password } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
 
   try {
+    // 🔒 Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered." });
+    }
+
+    // 🔐 Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 🔑 Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
+    // 📦 Create new user
     const newUser = new User({
       name,
       email,
@@ -20,28 +32,25 @@ exports.createUser = async (req, res) => {
       emailVerified: false,
     });
 
-    try {
-      await newUser.save();
-      console.log("✅ User saved to DB:", newUser.email);
-    } catch (err) {
-      console.error("❌ Error saving user to DB:", err.message);
-      return res.status(500).json({ message: "Failed to save user to database" });
-    }
+    // 💾 Save to DB
+    await newUser.save();
+    console.log("✅ User saved to DB:", newUser.email);
 
-    const verificationUrl = `http://localhost:3000/verify-email/${verificationToken}`;
+    // 🌐 Verification URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+const verificationUrl = `${process.env.FRONTEND_BASE_URL}/verify-email/${verificationToken}`;
+
+    // 📧 Email content
     const html = `
       <h2>Verify your ZollowUp account</h2>
       <p>Click the link below to verify your email:</p>
       <a href="${verificationUrl}">${verificationUrl}</a>
+      <p>This link will expire after it's used.</p>
     `;
 
-    try {
-      await sendEmail(email, "Verify your email", html);
-      console.log("📧 Verification email sent to:", email);
-    } catch (err) {
-      console.error("❌ Error sending email:", err.message);
-      return res.status(500).json({ message: "Failed to send verification email" });
-    }
+    // ✉️ Send email
+    await sendEmail(email, "Verify your email", html);
+    console.log("📧 Verification email sent to:", email);
 
     res.status(201).json({
       message: "Signup successful! Please check your email to verify your account.",
@@ -52,16 +61,18 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// ✅ Get All Users (Admin or Debug)
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error fetching users:", error.message);
     res.status(500).json({ message: "Server Error" });
   }
 };
 
+// ✅ Update Profile (User)
 exports.updateProfile = async (req, res) => {
   const userId = req.user?.userId;
   const { name, phone, address } = req.body;
@@ -72,13 +83,14 @@ exports.updateProfile = async (req, res) => {
       { name, phone, address },
       { new: true }
     );
+
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({ user: updatedUser });
   } catch (err) {
-    console.error("Update profile error:", err);
+    console.error("❌ Update profile error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -9,7 +9,6 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const { nanoid } = require("nanoid");
 
-
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
@@ -19,8 +18,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// 🔁 Use dynamic frontend base URL (for local/dev/prod)
+const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || "http://localhost:3000";
+
+// Send email verification link
 const sendVerificationEmail = async (email, token) => {
-  const url = `https://zollowupdemo.vercel.app/verify-email/${token}`; // ✅ production URL
+  const url = `${FRONTEND_BASE_URL}/verify-email/${token}`;
   const html = `<p>Click <a href="${url}">here</a> to verify your email.</p>`;
 
   await transporter.sendMail({
@@ -31,11 +34,13 @@ const sendVerificationEmail = async (email, token) => {
   });
 };
 
-
-// POST /api/users/register
+// ✅ Register User
 router.post("/register", async (req, res) => {
   const { name, email, password, referredBy } = req.body;
-  if (!name || !email || !password) return res.status(400).json({ msg: "All fields required" });
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ msg: "All fields required" });
+  }
 
   const existing = await User.findOne({ email });
   if (existing) return res.status(400).json({ msg: "User already exists" });
@@ -43,7 +48,7 @@ router.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const token = crypto.randomBytes(20).toString("hex");
 
-  const referralCode = nanoid(8); 
+  const referralCode = nanoid(8);
   const user = new User({
     name,
     email,
@@ -64,35 +69,27 @@ router.post("/register", async (req, res) => {
   }
 });
 
-
-// POST /api/users/resend-verification
+// ✅ Resend Verification Email
 router.post("/resend-verification", async (req, res) => {
   const { email } = req.body;
 
   try {
     const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: "User not found." });
+    if (user.emailVerified) return res.status(400).json({ msg: "Email already verified." });
 
-    if (!user) {
-      return res.status(404).json({ msg: "User not found." });
-    }
-
-    if (user.emailVerified) {
-      return res.status(400).json({ msg: "Email already verified." });
-    }
-
-    // Generate a new token
     const newToken = crypto.randomBytes(32).toString("hex");
     user.verificationToken = newToken;
     await user.save();
 
-    // Build verification URL
-    const verificationUrl = `https://zollowupdemo.vercel.app/verify-email/${newToken}`;
+    const verificationUrl = `${FRONTEND_BASE_URL}/verify-email/${newToken}`;
+    const html = `<p>Please click the link below to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`;
 
-    // Send email
-    await sendEmail({
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
       to: user.email,
       subject: "Resend: Verify your ZollowUp account",
-      html: `<p>Please click the link below to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
+      html,
     });
 
     res.status(200).json({ msg: "Verification email resent!" });
@@ -102,7 +99,6 @@ router.post("/resend-verification", async (req, res) => {
   }
 });
 
-// ✅ GET /api/users/verify-email/:token
 router.get("/verify-email/:token", async (req, res) => {
   const { token } = req.params;
   console.log("🔍 Verifying token:", token);
@@ -111,27 +107,30 @@ router.get("/verify-email/:token", async (req, res) => {
     const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
+      console.log("❌ Token not found or expired.");
       return res.status(400).json({ msg: "Invalid or expired verification link." });
     }
 
     if (user.emailVerified) {
-      return res.status(400).json({ msg: "Email already verified." });
+      console.log("ℹ️ Email already verified for:", user.email);
+      return res.status(200).json({ msg: "Email already verified." });
     }
 
     user.emailVerified = true;
     user.verificationToken = undefined;
     await user.save();
 
-    res.status(200).json({ msg: "Email verified successfully!" });
+    console.log("✅ Email verified for:", user.email);
+    return res.status(200).json({ msg: "Email verified successfully!" });
   } catch (err) {
     console.error("❌ Verification error:", err);
-    res.status(500).json({ msg: "Server error during verification." });
+    return res.status(500).json({ msg: "Server error during verification." });
   }
 });
 
 
-// POST /api/users/login
 
+// ✅ Login User
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -145,36 +144,33 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     {
       userId: user._id,
-      userType: user.userType || "user", // optional fallback
+      userType: user.userType || "user",
       isAdmin: user.isAdmin || false,
     },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  // ✅ Send token as cookie
- res.cookie("token", token, {
-  httpOnly: true,
-  secure: true, // ✅ force true even in dev (needed for cross-origin cookies)
-  sameSite: "None", // ✅ very important for Vercel <-> Render communication
-  maxAge: 60 * 60 * 1000, // 1 hour
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 60 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    message: "Login successful",
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin || false,
+    },
+  });
 });
 
-
- res.status(200).json({
-  message: "Login successful",
-  token, // ✅ send token in response for frontend
-  user: {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    isAdmin: user.isAdmin || false,
-  },
-});
-
-});
-
-// POST /api/users/logout
+// ✅ Logout User
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -184,18 +180,14 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Set password after Google Sign-In
-// POST /api/users/set-password
+// ✅ Set Password (after Google Sign-In)
 router.post("/set-password", authMiddleware, async (req, res) => {
-  console.log("📥 Received set-password request");
-
   const { password } = req.body;
-
   if (!password || password.length < 6) {
     return res.status(400).json({ message: "Password must be at least 6 characters." });
   }
 
-  const user = await User.findById(req.user.userId); // ✅ fixed here
+  const user = await User.findById(req.user.userId);
   if (!user) return res.status(404).json({ message: "User not found" });
 
   user.password = await bcrypt.hash(password, 10);
@@ -205,9 +197,8 @@ router.post("/set-password", authMiddleware, async (req, res) => {
     _id: user._id,
     name: user.name,
     email: user.email,
-    passwordNotSet: false, // ✅ frontend uses this
+    passwordNotSet: false,
   });
 });
-
 
 module.exports = router;

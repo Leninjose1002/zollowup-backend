@@ -46,14 +46,12 @@ router.post("/register", async (req, res) => {
   if (existing) return res.status(400).json({ msg: "User already exists" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const token = crypto.randomBytes(20).toString("hex");
 
   const referralCode = nanoid(8);
   const user = new User({
     name,
     email,
     password: hashedPassword,
-    verificationToken: token,
     isVerified: false,
     referralCode,
     referredBy: referredBy || null,
@@ -62,12 +60,18 @@ router.post("/register", async (req, res) => {
   await user.save();
 
   try {
+    // ✅ Generate email verification token using JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    // ✅ Send the verification email with this JWT token
     await sendVerificationEmail(email, token);
+
     res.status(201).json({ msg: "Registered! Check your email to verify." });
   } catch (err) {
     res.status(500).json({ msg: "Failed to send verification email" });
   }
 });
+
 
 // ✅ Resend Verification Email
 router.post("/resend-verification", async (req, res) => {
@@ -99,16 +103,19 @@ router.post("/resend-verification", async (req, res) => {
   }
 });
 
+// ✅ Verify Email
 router.get("/verify-email/:token", async (req, res) => {
   const { token } = req.params;
   console.log("🔍 Verifying token:", token);
 
   try {
-    const user = await User.findOne({ verificationToken: token });
+    // Decode token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Fetch user by ID
+    const user = await User.findById(decoded.userId);
     if (!user) {
-      console.log("❌ Token not found or expired.");
-      return res.status(400).json({ msg: "Invalid or expired verification link." });
+      return res.status(404).json({ msg: "User not found" });
     }
 
     if (user.emailVerified) {
@@ -116,17 +123,19 @@ router.get("/verify-email/:token", async (req, res) => {
       return res.status(200).json({ msg: "Email already verified." });
     }
 
+    // Update status
     user.emailVerified = true;
-    user.verificationToken = undefined;
     await user.save();
 
     console.log("✅ Email verified for:", user.email);
     return res.status(200).json({ msg: "Email verified successfully!" });
+
   } catch (err) {
     console.error("❌ Verification error:", err);
-    return res.status(500).json({ msg: "Server error during verification." });
+    return res.status(400).json({ msg: "Invalid or expired verification link." });
   }
 });
+
 
 
 

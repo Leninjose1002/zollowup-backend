@@ -5,6 +5,8 @@ const User = require("../models/User");
 const authMiddleware = async (req, res, next) => {
   // 🧪 TEST MODE: Skip real auth
  if (process.env.TEST_MODE === "true") {
+    const testUser = await User.findOne(); // 🛑 Always returns the first user (Pragati)
+
   console.log("🟢 TEST MODE ENABLED: Skipping authentication.");
   try {
     const testUser = await User.findOne();

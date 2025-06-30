@@ -4,17 +4,15 @@ const passport = require("passport");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
-// ✅ Load .env first
 dotenv.config();
-
 const app = express();
 
-// ✅ Log env variables (for debugging)
+// ✅ Log env variables
 console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
 console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
 console.log("NODE_ENV:", process.env.NODE_ENV);
 
-// ✅ Load Google OAuth Strategy before routes
+// ✅ Load Google OAuth Strategy
 require("./config/passport");
 
 // ✅ Import route modules

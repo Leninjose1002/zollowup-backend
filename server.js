@@ -3,17 +3,22 @@ const connectDB = require("./config/db");
 const app = require("./app");
 const http = require("http");
 const { Server } = require("socket.io");
-const ChatMessage = require("./models/ChatMessage"); 
+const ChatMessage = require("./models/ChatMessage");
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://zollowupdemo.vercel.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
+// ✅ Attach socket events
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);
 
@@ -42,6 +47,7 @@ io.on("connection", (socket) => {
 
 app.set("io", io);
 
+// ✅ Start server
 const startServer = async () => {
   try {
     await connectDB();
@@ -49,7 +55,7 @@ const startServer = async () => {
 
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server is live on port ${PORT}`);
     });
   } catch (err) {
     console.error("❌ Server start failed:", err.message);

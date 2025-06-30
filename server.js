@@ -11,12 +11,13 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://zollowupdemo.vercel.app"
+      "https://zollowupdemo.vercel.app",
     ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
+
 
 // ✅ Attach socket events
 io.on("connection", (socket) => {

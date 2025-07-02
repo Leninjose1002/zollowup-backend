@@ -32,7 +32,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 // ✅ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://zollowupdemo.vercel.app",
+  "https://zollowup-16nd.vercel.app/",
 ];
 
 app.use(

@@ -109,32 +109,28 @@ router.get("/verify-email/:token", async (req, res) => {
   console.log("🔍 Verifying token:", token);
 
   try {
-    // Decode token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Fetch user by ID
     const user = await User.findById(decoded.userId);
+
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.redirect(`${FRONTEND_BASE_URL}/verify-failed`);
     }
 
     if (user.emailVerified) {
-      console.log("ℹ️ Email already verified for:", user.email);
-      return res.status(200).json({ msg: "Email already verified." });
+      return res.redirect(`${FRONTEND_BASE_URL}/already-verified`);
     }
 
-    // Update status
     user.emailVerified = true;
     await user.save();
 
     console.log("✅ Email verified for:", user.email);
-    return res.status(200).json({ msg: "Email verified successfully!" });
-
+    return res.redirect(`${FRONTEND_BASE_URL}/verify-success`);
   } catch (err) {
     console.error("❌ Verification error:", err);
-    return res.status(400).json({ msg: "Invalid or expired verification link." });
+    return res.redirect(`${FRONTEND_BASE_URL}/verify-failed`);
   }
 });
+
 
 
 

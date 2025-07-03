@@ -44,7 +44,7 @@ router.get(
         { expiresIn: '1h' }
       );
       
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND_URL = process.env.FRONTEND_BASE_URL || "http://localhost:3000";
 
 const redirectURL = `${FRONTEND_URL}/user/google-redirect?token=${token}&needsPassword=${needsPassword}`;
       console.log('🔁 Redirecting to:', redirectURL);

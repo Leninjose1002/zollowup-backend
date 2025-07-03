@@ -15,7 +15,7 @@ router.get('/google', (req, res, next) => {
 }));
 
 
-// ✅ Google OAuth Callback
+// ✅ Google OAuth Callbacks
 router.get(
   '/google/callback',
   passport.authenticate('google-user', {

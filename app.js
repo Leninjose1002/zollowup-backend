@@ -28,6 +28,8 @@ const maidRoutes = require("./routes/maidRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
+
 
 // ✅ CORS Configuration
 const allowedOrigins = [
@@ -71,6 +73,8 @@ app.use("/api/maids", maidRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api", jobApplicationRoutes);
+
 
 // ✅ API Health Check
 app.get("/", (req, res) => {

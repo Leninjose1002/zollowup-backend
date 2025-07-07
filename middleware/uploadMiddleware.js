@@ -1,17 +1,41 @@
+// 📁 middleware/uploadMiddleware.js
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Ensure the uploads directory exists
-const uploadsDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+// Base uploads directory
+const baseDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
 
-// Configure storage
+// Ensure subfolder exists
+const ensureSubfolder = (folder) => {
+  const fullPath = path.join(baseDir, folder);
+  if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath);
+  return fullPath;
+};
+
+// Multer storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    let folder = "other";
+    switch (file.fieldname) {
+      case "photo":
+        folder = "photos";
+        break;
+      case "aadhar":
+        folder = "aadhar";
+        break;
+      case "resume":
+        folder = "resume";
+        break;
+      case "otherId":
+      case "pan":
+        folder = "pan";
+        break;
+      default:
+        folder = "other";
+    }
+    cb(null, ensureSubfolder(folder));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -20,18 +44,22 @@ const storage = multer.diskStorage({
   },
 });
 
-// ✅ FIXED file filter
-const fileFilter = (req, file, cb) => {
-  const allowedExt = /jpeg|jpg|png|mp4|mov|avi/;
-  const extname = allowedExt.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/");
+// Allowed types
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/jpg",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image/video files are allowed"));
-  }
+const fileFilter = (req, file, cb) => {
+  const isAllowed = allowedMimeTypes.includes(file.mimetype);
+  if (isAllowed) cb(null, true);
+  else cb(new Error("Only images and document files are allowed."));
 };
 
 const upload = multer({ storage, fileFilter });
+
 module.exports = upload;

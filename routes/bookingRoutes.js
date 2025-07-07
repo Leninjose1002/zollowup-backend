@@ -56,8 +56,10 @@ router.post("/nurse", async (req, res) => {
       bcc: process.env.ADMIN_EMAIL,
       subject: "Your Nurse Booking Confirmation",
       html: `
-        <h2>Thanks for booking with ZollowUp</h2>
-        <p>Your nurse service request has been received successfully:</p>
+<h2>Thank You for Booking with ZollowUp</h2>
+       <p>Your nurse service request has been received successfully.</p>
+<p>Our team will contact you shortly with the price quotes.</p>
+
         <ul>
           <li><strong>Nurse Type:</strong> ${nurseType}</li>
           <li><strong>Shift:</strong> ${shift}</li>
@@ -180,7 +182,7 @@ router.post("/chef", async (req, res) => {
       bcc: process.env.ADMIN_EMAIL,
       subject: "Your Chef Booking Confirmation",
       html: `
-        <h2>Thanks for booking with ZollowUp</h2>
+<h2>Thank You for Booking with ZollowUp</h2>
         <p>Your chef service request has been received successfully. Here are the details:</p>
         <ul>
           <li><strong>Name:</strong> ${name}</li>

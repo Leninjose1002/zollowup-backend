@@ -4,7 +4,7 @@ const router = express.Router();
 const Order = require("../models/Order");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Place order
+// Place ordere
 router.post("/", authMiddleware, async (req, res) => {
   const { items, serviceType, totalAmount } = req.body;
   const userId = req.user.userId;

@@ -14,7 +14,6 @@ const jobApplicationSchema = new mongoose.Schema({
   education: String,
   nearbyCity: String,
   additionalInfo: String,
-
   photoFile: String,
   aadharFile: String,
   resumeFile: String,

@@ -60,6 +60,8 @@ app.use(passport.initialize());
 // ✅ Serve static files
 app.use("/uploads", express.static("uploads"));
 
+app.use("/api/orders", require("./routes/orderRoutes"));
+
 // ✅ API Routes
 app.use("/api/users", userGoogleAuthRoutes);
 app.use("/api/users", userAuthRoutes);

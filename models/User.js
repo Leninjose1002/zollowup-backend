@@ -4,32 +4,20 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false },
-    isAdmin: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
+
+  phone: { type: String, required: false },     // ✅ Add this
+  address: { type: String, required: false },   // ✅ And this
 
   verificationToken: { type: String },
-  googleId: {
-    type: String,
-  },
-  photo: { type: String, default: "" }, // URL of profile image
-
-  emailVerified: {
-    type: Boolean,
-    default: false, // Only true after email verification
-  },
+  googleId: { type: String },
+  photo: { type: String, default: "" },
+  emailVerified: { type: Boolean, default: false },
   passwordNotSet: { type: Boolean, default: false },
 
-referralCode: {
-  type: String,
-  unique: true,
-    sparse: true, // optional, allows multiple users to have no referralCode
-
-},
-
-referredBy: {
-  type: String, // store the referralCode of the person who referred them
-  default: null,
-},
-
+  referralCode: { type: String, unique: true, sparse: true },
+  referredBy: { type: String, default: null },
 });
+
 
 module.exports = mongoose.model("User", userSchema);

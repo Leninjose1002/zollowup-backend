@@ -1,13 +1,14 @@
-// models/Review.js
-
 const mongoose = require("mongoose");
 
 const reviewSchema = new mongoose.Schema(
   {
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking", 
-      required: true,
+      ref: "Booking",
+    },
+    serviceName: {
+      type: String,
+      trim: true,
     },
     rating: {
       type: Number,
@@ -21,11 +22,10 @@ const reviewSchema = new mongoose.Schema(
       trim: true,
     },
     userId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  required: true,
-}
-
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true }
 );

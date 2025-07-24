@@ -215,5 +215,84 @@ router.post("/chef", async (req, res) => {
   }
 });
 
+// 🆕 Generic Booking for Other Services
+router.post("/:serviceType", async (req, res) => {
+  const { serviceType } = req.params;
+  const {
+    name,
+    email,
+    phone,
+    address,
+    date,
+    time,
+    notes,
+  } = req.body;
+
+  const fullAddress = address || "Not provided";
+  const fullDateTime = time ? `${date} ${time}` : date;
+
+  if (!email || !phone || !date || !serviceType) {
+    return res.status(400).json({ success: false, message: "Missing required fields" });
+  }
+
+  try {
+    const booking = new Booking({
+      serviceType,
+      name,
+      email,
+      phone,
+      address: fullAddress,
+      date: fullDateTime,
+      notes,
+      status: "pending",
+    });
+
+    await booking.save();
+
+    // ✅ Email confirmation setup
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      bcc: process.env.ADMIN_EMAIL,
+      subject: `Your ${serviceType} Booking Confirmation`,
+      html: `
+        <h2>Thank You for Booking with ZollowUp</h2>
+        <p>Your <strong>${serviceType}</strong> service request has been received successfully.</p>
+        <ul>
+          <li><strong>Name:</strong> ${name}</li>
+          <li><strong>Phone:</strong> ${phone}</li>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Date & Time:</strong> ${new Date(fullDateTime).toLocaleString()}</li>
+          <li><strong>Address:</strong> ${fullAddress}</li>
+          <li><strong>Service Type:</strong> ${serviceType}</li>
+          <li><strong>Notes:</strong> ${notes || "N/A"}</li>
+        </ul>
+        <p>✅ Our team will contact you shortly with price quotes.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).json({
+      success: true,
+      message: `${serviceType} booking submitted and email sent`,
+      data: booking,
+    });
+  } catch (error) {
+    console.error(`❌ Error creating ${serviceType} booking:`, error);
+    res.status(500).json({
+      success: false,
+      message: `Server error while booking ${serviceType}`,
+    });
+  }
+});
 
 module.exports = router;

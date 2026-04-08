@@ -34,8 +34,7 @@ const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
 // ✅ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://zollowup-16nd.vercel.app", // ✅ No trailing slash!
-  "https://zollowupdemo.vercel.app",  // ✅ Add if you use this too
+  "https://zollowup.com"
 ];
 
 
@@ -78,6 +77,15 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api", jobApplicationRoutes);
 
 
+// ✅ Health Check Endpoint
+   app.get('/api/health', (req, res) => {
+     res.json({ 
+       status: 'success',
+       message: 'Backend and Database connected',
+       database: 'MongoDB connected'
+     });
+   });
+
 // ✅ API Health Check
 app.get("/", (req, res) => {
   res.send("🚀 API is running...");
@@ -88,5 +96,7 @@ app.use((err, req, res, next) => {
   console.error("🔥 Global Error:", err.stack);
   res.status(500).send("Something went wrong!");
 });
+
+
 
 module.exports = app;

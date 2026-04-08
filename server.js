@@ -11,7 +11,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://zollowup-16nd.vercel.app",
+      "https://zollowup.com",
     ],
     methods: ["GET", "POST"],
     credentials: true,

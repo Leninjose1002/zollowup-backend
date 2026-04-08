@@ -17,3 +17,5 @@ node_modules/
 uploads/
 uploads/*.mp4
 *.mp4
+.vercel
+.env*.local

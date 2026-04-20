@@ -3,16 +3,16 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Base uploads directory
-const baseDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
+// // Base uploads directory
+// const baseDir = path.join(__dirname, "../uploads");
+// if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
 
-// Ensure subfolder exists
-const ensureSubfolder = (folder) => {
-  const fullPath = path.join(baseDir, folder);
-  if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath);
-  return fullPath;
-};
+// // Ensure subfolder exists
+// const ensureSubfolder = (folder) => {
+//   const fullPath = path.join(baseDir, folder);
+//   if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath);
+//   return fullPath;
+// };
 
 // Multer storage config
 const storage = multer.diskStorage({

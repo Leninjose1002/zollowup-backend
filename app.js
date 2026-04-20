@@ -33,8 +33,10 @@ const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
 
 // ✅ CORS Configuration
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://zollowup.com"
+  "http://localhost:3000",           // Local testing
+  "https://zollowup.com",             // Customer app
+  "https://vendor.zollowup.com",      // Vendor portal (production)
+  "https://zollowupvendor-frontend.vercel.app"  // Vercel deployment
 ];
 
 

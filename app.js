@@ -40,17 +40,22 @@ const allowedOrigins = [
 ];
 
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       }
+//       return callback(new Error("Not allowed by CORS"));
+//     },
+//     credentials: true,
+//   })
+// );
+
+app.use(cors({
+  origin: "*",  // Allow all origins temporarily for testing
+  credentials: false,
+}));
 
 // ✅ Core Middlewares
 app.use(express.json());

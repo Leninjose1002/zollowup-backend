@@ -3,7 +3,9 @@ const nodemailer = require("nodemailer");
 const sendEmail = async (to, subject, html) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: "Gmail", // or use "hotmail", "yahoo" etc.
+       host: "smtp.hostinger.com",
+  port: 465,
+  secure: true,  // true because we're using port 465 with SSL
       auth: {
         user: process.env.EMAIL_USER, // your email
         pass: process.env.EMAIL_PASS, // your email password or app-specific password

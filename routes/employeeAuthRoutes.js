@@ -176,7 +176,9 @@ router.post("/register", async (req, res) => {
     await employee.save();
 
     // Send verification email
-    const verificationLink = `${process.env.FRONTEND_URL}/vendor/verify-email?token=${emailVerificationToken}&email=${email}`;
+    // const verificationLink = `${process.env.FRONTEND_URL}/vendor/verify-email?token=${emailVerificationToken}&email=${email}`;
+
+    const verificationLink = `${process.env.FRONTEND_URL}?page=verify-email&token=${emailVerificationToken}&email=${email}`;
 
     const emailHtml = `
       <h2>Welcome to Zollowup! 🎉</h2>

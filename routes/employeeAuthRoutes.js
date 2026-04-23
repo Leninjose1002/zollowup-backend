@@ -442,4 +442,40 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// 📊 GET vendor dashboard
+router.get("/dashboard", authMiddleware, async (req, res) => {
+  try {
+    const employee = await Employee.findById(req.user.userId).select("-password");
+    
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.json({
+      vendor: {
+        id: employee._id,
+        businessName: employee.businessName,
+        name: employee.name,
+        email: employee.email,
+        phone: employee.phone,
+        profileImage: employee.profileImage,
+      },
+      stats: {
+        totalEarnings: employee.totalEarnings || 0,
+        availableBalance: employee.availableBalance || 0,
+        totalBookings: employee.totalBookings || 0,
+        averageRating: employee.averageRating || 0,
+      },
+      paymentMethods: {
+        hasRazorpay: !!employee.razorpayId,
+        hasBankDetails: !!employee.bankDetails,
+        hasUpi: !!employee.upiId,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching dashboard:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

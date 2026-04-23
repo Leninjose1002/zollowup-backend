@@ -128,6 +128,7 @@ const crypto = require("crypto");
 const Employee = require("../models/Employee");
 const authMiddleware = require("../middleware/authMiddleware");
 const sendEmail = require("../utils/sendEmail");
+const sendSMS = require("../utils/sendSMS"); 
 
 const router = express.Router();
 
@@ -232,6 +233,7 @@ router.post("/verify-email", async (req, res) => {
 
     // Mark as verified
     employee.isVerified = true;
+    employee.verificationMethod = "email"; 
     employee.emailVerificationToken = null;
     employee.emailVerificationExpires = null;
     await employee.save();
@@ -279,7 +281,7 @@ router.post("/resend-verification", async (req, res) => {
     await employee.save();
 
     // Send verification email
-    const verificationLink = `${process.env.FRONTEND_URL}/vendor/verify-email?token=${emailVerificationToken}&email=${email}`;
+    const verificationLink = `${process.env.FRONTEND_URL}?page=verify-email&token=${emailVerificationToken}&email=${email}`;
 
     const emailHtml = `
       <h2>Verify Your Email - Zollowup Vendor</h2>
@@ -296,6 +298,93 @@ router.post("/resend-verification", async (req, res) => {
     res.json({ message: "Verification email sent successfully!" });
   } catch (error) {
     console.error("❌ Resend verification error:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+// =============== PHONE OTP VERIFICATION ===============
+
+// ✅ Send OTP to Phone
+// POST /api/employees/send-phone-otp
+router.post("/send-phone-otp", async (req, res) => {
+  const { phone, email } = req.body;
+
+  if (!phone || !email) {
+    return res.status(400).json({ msg: "Phone and email are required" });
+  }
+
+  try {
+    const employee = await Employee.findOne({ email });
+
+    if (!employee) {
+      return res.status(404).json({ msg: "Employee not found" });
+    }
+
+    if (employee.isVerified) {
+      return res.status(400).json({ msg: "Account already verified" });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP to database
+    employee.phoneOTP = otp;
+    employee.phoneOTPExpires = otpExpires;
+    await employee.save();
+
+    // Send SMS with OTP (using MSG91)
+    const message = `Your Zollowup verification code is: ${otp}. This code expires in 10 minutes.`;
+    await sendSMS(phone, message);
+
+    res.json({
+      message: "OTP sent successfully to your phone!",
+    });
+  } catch (error) {
+    console.error("❌ Send OTP error:", error);
+    res.status(500).json({ msg: "Failed to send OTP. Please try again." });
+  }
+});
+
+// ✅ Verify Phone OTP
+// POST /api/employees/verify-phone-otp
+router.post("/verify-phone-otp", async (req, res) => {
+  const { phone, email, otp } = req.body;
+
+  if (!phone || !email || !otp) {
+    return res.status(400).json({ msg: "Phone, email, and OTP are required" });
+  }
+
+  try {
+    const employee = await Employee.findOne({
+      email,
+      phone,
+      phoneOTP: otp,
+      phoneOTPExpires: { $gt: new Date() },
+    });
+
+    if (!employee) {
+      return res.status(400).json({ msg: "Invalid or expired OTP" });
+    }
+
+    // Mark as verified
+    employee.isVerified = true;
+    employee.verificationMethod = "phone";
+    employee.phoneOTP = null;
+    employee.phoneOTPExpires = null;
+    await employee.save();
+
+    res.json({
+      message: "Phone verified successfully! You can now log in.",
+      employee: {
+        id: employee._id,
+        email: employee.email,
+        phone: employee.phone,
+        isVerified: employee.isVerified,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Phone OTP verification error:", error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });

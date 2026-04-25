@@ -141,6 +141,10 @@ const EmployeeSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    shortVerificationToken: {      // 🆕 ADD THIS
+  type: String,
+  default: null,
+},
 
     // Profile Info
     profileImage: {

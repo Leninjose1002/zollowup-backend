@@ -160,8 +160,13 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Generate email verification token
-    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Generate email verification token
+const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+const shortVerificationToken = emailVerificationToken.substring(0, 9).toUpperCase(); // 🆕 ADD THIS
+const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    // const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create new employee
     employee = new Employee({
@@ -171,6 +176,7 @@ router.post("/register", async (req, res) => {
       businessName,
       phone,
       emailVerificationToken,
+      shortVerificationToken,
       emailVerificationExpires,
     });
 
@@ -182,16 +188,34 @@ router.post("/register", async (req, res) => {
     const verificationLink = `${process.env.FRONTEND_URL}?page=verify-email&token=${emailVerificationToken}&email=${email}`;
 
     const emailHtml = `
-      <h2>Welcome to Zollowup! 🎉</h2>
-      <p>Hi ${businessName},</p>
-      <p>Thank you for signing up as a vendor. Please verify your email to complete your registration.</p>
-      <a href="${verificationLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
-        Verify Email
-      </a>
-      <p>Or copy this link: <a href="${verificationLink}">${verificationLink}</a></p>
-      <p>This link expires in 24 hours.</p>
-      <p>Best regards,<br/>Zollowup Team</p>
-    `;
+  <h2>Welcome to Zollowup! 🎉</h2>
+  <p>Hi ${businessName},</p>
+  <p>Thank you for signing up as a vendor. Please verify your email to complete your registration.</p>
+  
+  <h3>✅ Option 1: Click Button (Easiest)</h3>
+  <a href="${verificationLink}" style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+    ✓ Verify Email
+  </a>
+  
+  <h3>✅ Option 2: Manual Entry (if button doesn't work)</h3>
+  <p>Go to: <a href="${process.env.FRONTEND_URL}">${process.env.FRONTEND_URL}</a></p>
+  <p>Paste this token: <strong style="font-size: 18px; color: #007bff;">${shortVerificationToken}</strong></p>
+  
+  <p style="color: #888; font-size: 12px;">This link expires in 24 hours.</p>
+  <p>Best regards,<br/>Zollowup Team</p>
+`;
+
+    // const emailHtml = `
+    //   <h2>Welcome to Zollowup! 🎉</h2>
+    //   <p>Hi ${businessName},</p>
+    //   <p>Thank you for signing up as a vendor. Please verify your email to complete your registration.</p>
+    //   <a href="${verificationLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
+    //     Verify Email
+    //   </a>
+    //   <p>Or copy this link: <a href="${verificationLink}">${verificationLink}</a></p>
+    //   <p>This link expires in 24 hours.</p>
+    //   <p>Best regards,<br/>Zollowup Team</p>
+    // `;
 
     await sendEmail(email, "Verify your Zollowup Vendor Account", emailHtml);
 
@@ -221,11 +245,20 @@ router.post("/verify-email", async (req, res) => {
   }
 
   try {
+
     const employee = await Employee.findOne({
-      email,
-      emailVerificationToken: token,
-      emailVerificationExpires: { $gt: new Date() },
-    });
+  email,
+  $or: [
+    { emailVerificationToken: token },    // Full token
+    { shortVerificationToken: token.toUpperCase() }  // Short token
+  ],
+  emailVerificationExpires: { $gt: new Date() },
+});
+    // const employee = await Employee.findOne({
+    //   email,
+    //   emailVerificationToken: token,
+    //   emailVerificationExpires: { $gt: new Date() },
+    // });
 
     if (!employee) {
       return res.status(400).json({ msg: "Invalid or expired verification token" });
@@ -274,24 +307,42 @@ router.post("/resend-verification", async (req, res) => {
 
     // Generate new verification token
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    const shortVerificationToken = emailVerificationToken.substring(0, 9).toUpperCase();
     const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     employee.emailVerificationToken = emailVerificationToken;
+    employee.shortVerificationToken = shortVerificationToken;
     employee.emailVerificationExpires = emailVerificationExpires;
     await employee.save();
 
     // Send verification email
     const verificationLink = `${process.env.FRONTEND_URL}?page=verify-email&token=${emailVerificationToken}&email=${email}`;
 
+    // const emailHtml = `
+    //   <h2>Verify Your Email - Zollowup Vendor</h2>
+    //   <p>Hi ${employee.businessName},</p>
+    //   <p>Here's your new verification link:</p>
+    //   <a href="${verificationLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
+    //     Verify Email
+    //   </a>
+    //   <p>This link expires in 24 hours.</p>
+    // `;
+
     const emailHtml = `
-      <h2>Verify Your Email - Zollowup Vendor</h2>
-      <p>Hi ${employee.businessName},</p>
-      <p>Here's your new verification link:</p>
-      <a href="${verificationLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
-        Verify Email
-      </a>
-      <p>This link expires in 24 hours.</p>
-    `;
+  <h2>Verify Your Email - Zollowup Vendor</h2>
+  <p>Hi ${employee.businessName},</p>
+  
+  <h3>✅ Option 1: Click Button (Easiest)</h3>
+  <a href="${verificationLink}" style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+    ✓ Verify Email
+  </a>
+  
+  <h3>✅ Option 2: Manual Entry (if button doesn't work)</h3>
+  <p>Go to: <a href="${process.env.FRONTEND_URL}">${process.env.FRONTEND_URL}</a></p>
+  <p>Paste this token: <strong style="font-size: 18px; color: #007bff;">${shortVerificationToken}</strong></p>
+  
+  <p style="color: #888; font-size: 12px;">This link expires in 24 hours.</p>
+`;
 
     await sendEmail(email, "Verify your Zollowup Vendor Account", emailHtml);
 

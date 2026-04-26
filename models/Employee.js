@@ -145,7 +145,15 @@ const EmployeeSchema = new mongoose.Schema(
   type: String,
   default: null,
 },
-
+  // Password Reset
+passwordResetToken: {
+  type: String,
+  default: null,
+},
+passwordResetExpires: {
+  type: Date,
+  default: null,
+},
     // Profile Info
     profileImage: {
       type: String,

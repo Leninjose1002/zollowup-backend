@@ -618,4 +618,140 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
+// =============== PASSWORD RESET ===============
+
+// 📧 Forgot Password - Send Reset Link
+// POST /api/employees/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ msg: "Email is required" });
+  }
+
+  try {
+    const employee = await Employee.findOne({ email });
+
+    if (!employee) {
+      return res.status(404).json({ msg: "Email not found" });
+    }
+
+    // Generate reset token
+    const passwordResetToken = crypto.randomBytes(32).toString("hex");
+    const passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    employee.passwordResetToken = passwordResetToken;
+    employee.passwordResetExpires = passwordResetExpires;
+    await employee.save();
+
+    // Create reset link
+    const resetLink = `${process.env.FRONTEND_URL}?page=reset-password&token=${passwordResetToken}&email=${email}`;
+
+    // Send email
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 0; }
+    .header { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 20px; text-align: center; color: white; }
+    .content { padding: 30px; }
+    .button { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
+    .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">Reset Your Password</h2>
+    </div>
+    
+    <div class="content">
+      <p>Hi ${employee.businessName || employee.name},</p>
+      <p>You requested to reset your password. Click the button below to set a new password:</p>
+      
+      <center style="margin: 30px 0;">
+        <a href="${resetLink}" class="button">Reset Password</a>
+      </center>
+      
+      <p>Or copy this link: <a href="${resetLink}">${resetLink}</a></p>
+      
+      <div class="warning">
+        <strong>⚠️ Security Notice:</strong><br/>
+        This link expires in 1 hour. If you didn't request this, ignore this email.
+      </div>
+      
+      <p>Best regards,<br/>Zollowup Team</p>
+    </div>
+    
+    <div class="footer">
+      <p>© 2026 Zollowup. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail(email, "Reset your Zollowup Password", emailHtml);
+
+    res.json({ 
+      message: "Password reset link sent to your email. Check your inbox!" 
+    });
+  } catch (error) {
+    console.error("❌ Forgot password error:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+// 🔑 Reset Password - Verify Token & Update Password
+// POST /api/employees/reset-password
+router.post("/reset-password", async (req, res) => {
+  const { token, email, newPassword, confirmPassword } = req.body;
+
+  if (!token || !email || !newPassword || !confirmPassword) {
+    return res.status(400).json({ 
+      msg: "Token, email, new password, and confirm password are required" 
+    });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ msg: "Passwords do not match" });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ msg: "Password must be at least 6 characters" });
+  }
+
+  try {
+    const employee = await Employee.findOne({
+      email,
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: new Date() },
+    });
+
+    if (!employee) {
+      return res.status(400).json({ msg: "Invalid or expired reset token" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password and clear reset token
+    employee.password = hashedPassword;
+    employee.passwordResetToken = null;
+    employee.passwordResetExpires = null;
+    await employee.save();
+
+    res.json({ 
+      message: "Password reset successfully! You can now log in with your new password." 
+    });
+  } catch (error) {
+    console.error("❌ Reset password error:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
 module.exports = router;

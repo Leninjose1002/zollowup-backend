@@ -221,6 +221,20 @@ passwordResetExpires: {
         verifiedAt: Date,
       },
     ],
+    
+    // ✅ Vendor-specific fields
+  kyc_status: {
+    type: String,
+    enum: ['not_started', 'pending_review', 'verified', 'kyc_rejected'],
+    default: 'not_started'
+  },
+  vendor_status: {
+    type: String,
+    enum: ['pending', 'active', 'suspended'],
+    default: 'pending'
+  },
+  kyc_submitted_at: Date,
+  kyc_verified_at: Date,
 
     // Additional Info
     lastLogin: Date,
@@ -230,10 +244,12 @@ passwordResetExpires: {
     },
     lockedUntil: Date,
   },
+  
   {
     timestamps: true,
   }
 );
+
 
 // ✅ Index for faster queries
 EmployeeSchema.index({ email: 1 });

@@ -29,6 +29,8 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
+// Add this line with other route imports:
+const kycRoutes = require("./routes/vendorKYC");
 
 
 // ✅ CORS Configuration
@@ -91,7 +93,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api", jobApplicationRoutes);
-
+// Add this line with other API routes:
+app.use("/api", kycRoutes);
 
 // ✅ Health Check Endpoint
    app.get('/api/health', (req, res) => {

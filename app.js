@@ -39,7 +39,9 @@ const allowedOrigins = [
   "http://localhost:3000",           // Local testing
   "https://zollowup.com",             // Customer app
   "https://vendor.zollowup.com",      // Vendor portal (production)
-  "https://zollowupvendor-frontend.vercel.app"  // Vercel deployment
+  "https://zollowupvendor-frontend.vercel.app",  // Vercel deployment
+  "https://www.zollowup.com",  // ✅ ADD WITH www
+  "https://zollowup-frontend.vercel.app",  // ✅ ADD Vercel URL
 ];
 
 

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const vendorKYCSchema = new mongoose.Schema({
   vendor_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vendor',
+    ref: 'Employee',
     required: true,
     unique: true
   },

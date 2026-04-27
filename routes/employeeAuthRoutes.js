@@ -139,12 +139,12 @@ console.log("✅ employeeAuthRoutes.js loaded");
 // 📝 Employee Signup
 // POST /api/employees/register
 router.post("/register", async (req, res) => {
-  const { email, password, businessName, phone, name } = req.body;
+  const { email, password, businessName, phone, name, sourcing_person_name, skill_category, diet_type } = req.body;
 
   // Validation
-  if (!email || !password || !businessName || !phone) {
+  if (!email || !password || !businessName || !phone || !skill_category) {
     return res.status(400).json({ 
-      msg: "Email, password, business name, and phone are required" 
+      msg: "Email, password, business name, phone, and skill category are required" 
     });
   }
 
@@ -175,6 +175,9 @@ const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
       name: name || businessName,
       businessName,
       phone,
+      sourcing_person_name: sourcing_person_name || null,  // 🆕 NEW
+      skill_category: skill_category,                      // 🆕 NEW
+      diet_type: skill_category === 'Cook/Chef' ? diet_type : null,  // 🆕 NEW
       emailVerificationToken,
       shortVerificationToken,
       emailVerificationExpires,
@@ -225,6 +228,8 @@ const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
         id: employee._id,
         email: employee.email,
         businessName: employee.businessName,
+        skill_category: employee.skill_category,  // 🆕 NEW
+        sourcing_person_name: employee.sourcing_person_name,  // 🆕 NEW
       },
     });
   } catch (error) {
@@ -521,7 +526,7 @@ router.get("/me", authMiddleware, async (req, res) => {
 // 📝 UPDATE employee profile
 router.put("/me", authMiddleware, async (req, res) => {
   try {
-    const { name, businessName, phone, profileImage, bankDetails, upiId, preferredPaymentMethod } = req.body;
+    const { name, businessName, phone, profileImage, bankDetails, upiId, preferredPaymentMethod, sourcing_person_name, skill_category, diet_type } = req.body;
 
     const employee = await Employee.findById(req.user.userId);
     if (!employee) {
@@ -536,6 +541,15 @@ router.put("/me", authMiddleware, async (req, res) => {
     if (bankDetails) employee.bankDetails = { ...employee.bankDetails, ...bankDetails };
     if (upiId) employee.upiId = upiId;
     if (preferredPaymentMethod) employee.preferredPaymentMethod = preferredPaymentMethod;
+    
+    // 🆕 NEW FIELDS - Allow updating
+    if (sourcing_person_name !== undefined) employee.sourcing_person_name = sourcing_person_name;
+    if (skill_category) employee.skill_category = skill_category;
+    if (skill_category === 'Cook/Chef' && diet_type) {
+      employee.diet_type = diet_type;
+    } else if (skill_category !== 'Cook/Chef') {
+      employee.diet_type = null;  // Clear diet_type for non-chefs
+    }
 
     await employee.save();
 
@@ -548,6 +562,9 @@ router.put("/me", authMiddleware, async (req, res) => {
         email: employee.email,
         phone: employee.phone,
         profileImage: employee.profileImage,
+        skill_category: employee.skill_category,  // 🆕 NEW
+        sourcing_person_name: employee.sourcing_person_name,  // 🆕 NEW
+        diet_type: employee.diet_type,  // 🆕 NEW
       },
     });
   } catch (error) {
@@ -599,6 +616,9 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
         email: employee.email,
         phone: employee.phone,
         profileImage: employee.profileImage,
+        skill_category: employee.skill_category,  // 🆕 NEW
+        sourcing_person_name: employee.sourcing_person_name,  // 🆕 NEW
+        diet_type: employee.diet_type,  // 🆕 NEW
       },
       stats: {
         totalEarnings: employee.totalEarnings || 0,

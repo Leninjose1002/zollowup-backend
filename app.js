@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const passport = require("passport");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require('path');
 
 dotenv.config();
 const app = express();
@@ -74,8 +75,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// ✅ Serve static files
-app.use("/uploads", express.static("uploads"));
+// ✅ Serve static files (ABSOLUTE PATH)
+app.use("/uploads", express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/orders", require("./routes/orderRoutes"));
 
@@ -93,8 +94,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api", jobApplicationRoutes);
-// Add this line with other API routes:
-app.use("/api", kycRoutes);
+app.use("/api", kycRoutes); 
 
 // ✅ Health Check Endpoint
    app.get('/api/health', (req, res) => {

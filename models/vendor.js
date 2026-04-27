@@ -7,7 +7,27 @@ const VendorSchema = new mongoose.Schema({
   businessName: String,
   phone: String,
   
-  // ... other fields you already have ...
+  // 🆕 NEW FIELDS - Add these 3 fields
+  sourcing_person_name: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  
+  skill_category: {
+    type: String,
+    enum: ['Labor', 'Beautician', 'Tailor', 'Mason', 'Maid', 'Cook/Chef', 'Plumber', 'Electrician', 'Other'],
+    required: true
+  },
+  
+  diet_type: {
+    type: String,
+    enum: ['Vegetarian', 'Non-Vegetarian', 'Both'],
+    default: null,
+    required: function() {
+    return this.skill_category === 'Cook/Chef'; // Only required for chefs
+  }
+  },
   
   // 🆕 KYC FIELDS
   kyc_status: { 

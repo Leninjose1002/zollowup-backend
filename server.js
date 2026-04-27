@@ -12,6 +12,7 @@ const io = new Server(server, {
     origin: [
       "http://localhost:3000",
       "https://zollowup.com",
+      "https://zollowup-frontend.vercel.app"
     ],
     methods: ["GET", "POST"],
     credentials: true,

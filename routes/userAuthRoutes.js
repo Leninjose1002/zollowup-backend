@@ -21,6 +21,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log("🔍 FRONTEND_BASE_URL loaded as:", process.env.FRONTEND_BASE_URL);
+
 // 🔁 Use dynamic frontend base URL (for local/dev/prod)
 const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || "http://localhost:3000";
 

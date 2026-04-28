@@ -21,14 +21,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-console.log("🔍 FRONTEND_BASE_URL loaded as:", process.env.FRONTEND_BASE_URL);
+console.log("🔍 FRONTEND_URL loaded as:", process.env.FRONTEND_URL);
 
 // 🔁 Use dynamic frontend base URL (for local/dev/prod)
-const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || "http://localhost:3000";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 // Send email verification link
 const sendVerificationEmail = async (email, token) => {
-  const url = `${FRONTEND_BASE_URL}/verify-email/${token}`;
+  const url = `${FRONTEND_URL}/verify-email/${token}`;
   const html = `<p>Click <a href="${url}">here</a> to verify your email.</p>`;
 
   await transporter.sendMail({
@@ -74,7 +74,7 @@ router.post("/register", async (req, res) => {
       console.log("📧 Email config:", {
         emailUser: process.env.EMAIL_USER,
         emailPass: process.env.EMAIL_PASS ? "***SET***" : "EMPTY",
-        frontendUrl: FRONTEND_BASE_URL
+        frontendUrl: FRONTEND_URL
       });
 
       // ✅ Generate email verification token using JWT
@@ -108,9 +108,9 @@ router.post("/resend-verification", async (req, res) => {
     user.verificationToken = newToken;
     await user.save();
 
-    console.log("🔍 DEBUG - FRONTEND_BASE_URL:", process.env.FRONTEND_BASE_URL);
+    console.log("🔍 DEBUG - FRONTEND_URL:", process.env.FRONTEND_URL);
 
-    const verificationUrl = `${FRONTEND_BASE_URL}/verify-email/${newToken}`;
+    const verificationUrl = `${FRONTEND_URL}/verify-email/${newToken}`;
 
     console.log("🔍 DEBUG - Final verification URL:", verificationUrl);
 

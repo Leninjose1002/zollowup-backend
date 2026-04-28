@@ -12,7 +12,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',
+  host: 'smtp.hostinger.com',  // Hostinger SMTP
+  port: 465,                    // or 587
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -65,6 +67,14 @@ router.post("/register", async (req, res) => {
     await user.save();
 
     try {
+
+      // 🔍 ADD THIS DEBUG LOG HERE
+      console.log("📧 Email config:", {
+        emailUser: process.env.EMAIL_USER,
+        emailPass: process.env.EMAIL_PASS ? "***SET***" : "EMPTY",
+        frontendUrl: FRONTEND_BASE_URL
+      });
+
       // ✅ Generate email verification token using JWT
       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
@@ -73,10 +83,11 @@ router.post("/register", async (req, res) => {
 
       res.status(201).json({ msg: "Registered! Check your email to verify." });
     } catch (err) {
+      console.error("Email error:", err.message); 
       res.status(500).json({ msg: "Failed to send verification email" });
     }
   } catch (err) {
-    console.error("❌ Register error:", err);
+    console.error("Register error:", err);
     res.status(500).json({ msg: "Server error during registration" });
   }
 });

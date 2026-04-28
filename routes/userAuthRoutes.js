@@ -32,7 +32,7 @@ const sendVerificationEmail = async (email, token) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Email Verification',
+    subject: 'Verify Your Zollowup Account',
     html,
   });
 };
@@ -111,7 +111,7 @@ router.post("/resend-verification", async (req, res) => {
     const verificationUrl = `${FRONTEND_BASE_URL}/verify-email/${newToken}`;
 
     console.log("🔍 DEBUG - Final verification URL:", verificationUrl);
-    
+
     const html = `<p>Please click the link below to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`;
 
     await transporter.sendMail({

@@ -38,7 +38,11 @@ exports.createUser = async (req, res) => {
 
     // 🌐 Verification URL
     
-const verificationUrl = `${process.env.FRONTEND_BASE_URL}/verify-email/${verificationToken}`;
+// 🔁 Use dynamic frontend base URL (for local/dev/prod)
+const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || "https://www.zollowup.com";
+
+// 📧 Email content
+const verificationUrl = `${FRONTEND_BASE_URL}/verify-email/${verificationToken}`;
 
     // 📧 Email content
     const html = `

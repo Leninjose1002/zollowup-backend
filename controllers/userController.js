@@ -37,7 +37,7 @@ exports.createUser = async (req, res) => {
     console.log("✅ User saved to DB:", newUser.email);
 
     // 🌐 Verification URL
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    
 const verificationUrl = `${process.env.FRONTEND_BASE_URL}/verify-email/${verificationToken}`;
 
     // 📧 Email content

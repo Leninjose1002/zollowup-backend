@@ -44,6 +44,11 @@ const allowedOrigins = [
   "https://zollowup-frontend.vercel.app",  // ✅ ADD Vercel URL
 ];
 
+// 🔍 DEBUG: Log all incoming origins
+app.use((req, res, next) => {
+  console.log("📍 Incoming request origin:", req.headers.origin);
+  next();
+});
 
 // app.use(
 //   cors({
@@ -60,9 +65,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("🔍 CORS check - Origin:", origin);
+      console.log("🔍 Allowed origins:", allowedOrigins);
+
       if (!origin || allowedOrigins.includes(origin)) {
+         console.log("✅ CORS allowed");
         return callback(null, true);
       }
+      console.log("❌ CORS rejected for:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -97,6 +107,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api", jobApplicationRoutes);
 app.use("/api", kycRoutes); 
+
 
 // ✅ Health Check Endpoint
    app.get('/api/health', (req, res) => {

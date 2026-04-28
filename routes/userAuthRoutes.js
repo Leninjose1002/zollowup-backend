@@ -61,7 +61,7 @@ router.post("/register", async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      isVerified: false,
+      emailVerified: false,
       referralCode,
       referredBy: referredBy || null,
     });

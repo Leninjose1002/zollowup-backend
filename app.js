@@ -19,6 +19,7 @@ require("./config/passport");
 // ✅ Import route modules
 const userGoogleAuthRoutes = require("./routes/userGoogleAuthRoutes");
 const userAuthRoutes = require("./routes/userAuthRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const userProfileRoutes = require("./routes/userProfileRoutes");
 const employeeAuthRoutes = require("./routes/employeeAuthRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
@@ -95,6 +96,7 @@ app.use("/api/orders", require("./routes/orderRoutes"));
 // ✅ API Routes
 app.use("/api/users", userGoogleAuthRoutes);
 app.use("/api/users", userAuthRoutes);
+app.use("/api/contact", contactRoutes); 
 app.use("/api/users", userProfileRoutes);
 app.use("/api/employees", employeeAuthRoutes);
 app.use("/api/bookings", bookingRoutes);

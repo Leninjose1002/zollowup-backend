@@ -14,7 +14,9 @@ const handleContactForm = async (req, res) => {
 
     // ✅ Use same config as nurse booking
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+       host: 'smtp.hostinger.com',  // ✅ Changed
+      port: 465,                    // ✅ Changed
+      secure: true,  
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

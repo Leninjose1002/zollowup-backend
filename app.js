@@ -25,7 +25,6 @@ const employeeAuthRoutes = require("./routes/employeeAuthRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const locationRoutes = require("./routes/locationRoutes");
-const contactRoutes = require("./routes/contactRoutes");
 const maidRoutes = require("./routes/maidRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const chatRoutes = require("./routes/chatRoutes");

@@ -239,6 +239,59 @@ router.post("/set-password", authMiddleware, async (req, res) => {
   });
 });
 
+// ✅ Forgot Password - Send reset link
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Generate reset token
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+    // Send reset email
+    const resetUrl = `${process.env.FRONTEND_BASE_URL}/reset-password/${resetToken}`;
+    const html = `
+      <p>Click the link below to reset your password (expires in 15 minutes):</p>
+      <a href="${resetUrl}">Reset Password</a>
+    `;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Reset Your ZollowUp Password",
+      html,
+    });
+
+    res.status(200).json({ msg: "Reset email sent" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// ✅ Reset Password
+router.post("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    user.password = await bcrypt.hash(password, 10);
+    await user.save();
+
+    res.status(200).json({ msg: "Password reset successfully" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(400).json({ msg: "Invalid or expired reset link" });
+  }
+});
+
 module.exports = router;
 
 

@@ -251,7 +251,7 @@ router.post("/forgot-password", async (req, res) => {
     const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
     // Send reset email
-    const resetUrl = `${process.env.FRONTEND_BASE_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${FRONTEND_BASE_URL}/reset-password/${resetToken}`;
     const html = `
       <p>Click the link below to reset your password (expires in 15 minutes):</p>
       <a href="${resetUrl}">Reset Password</a>

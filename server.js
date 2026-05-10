@@ -14,7 +14,8 @@ const io = new Server(server, {
       "https://zollowup.com",
       "https://zollowup-frontend.vercel.app"
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST","PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   },
 });

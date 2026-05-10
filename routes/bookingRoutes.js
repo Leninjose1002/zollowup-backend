@@ -127,7 +127,21 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 // ✅ Update booking status
-router.patch("/bookings/:id/status", updateBookingStatus);
+// router.patch("/bookings/:id/status", updateBookingStatus);
+// ✅ Update booking status
+router.patch("/:id/status", async (req, res) => {
+  const { status } = req.body;
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    res.json({ message: "Status updated", booking });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating status", error });
+  }
+});
 
 // 🆕 Public route: Chef booking form (no login required)
 router.post("/chef", async (req, res) => {
